@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Read Aloud Focus</title>
+<link rel="stylesheet" href="sidepanel.css">
+<body>
+<header>
+  <div class="brand"><span class="logo">🎙️</span><h1>Read Aloud Focus</h1></div>
+  <span id="pill" class="pill">Ready</span>
+</header>
+
+<main>
+  <section class="card now" aria-live="polite">
+    <div class="label">Now reading</div>
+    <p id="cur" class="sentence empty">Open an article, then press Start.</p>
+    <div class="bar" role="progressbar" aria-label="Progress"><i id="prog"></i></div>
+    <div class="row meta"><span id="count"></span><span id="status"></span></div>
+  </section>
+
+  <section id="def" class="card def" hidden></section>
+
+  <section class="card">
+    <div class="row meta"><span class="label">Focus timer</span><span id="idle">—</span></div>
+    <div class="meter"><i id="meter"></i><b id="tickWarn"></b></div>
+  </section>
+
+  <div class="controls">
+    <button id="toggle" class="primary">▶ Start</button>
+    <button id="pick" title="Click on the page where you want to start">📍 Pick start</button>
+    <button id="reset" title="Clear and start over">↺ Reset</button>
+  </div>
+  <p class="hint">Reads the whole page from the first sentence on screen. Select a sentence or use Pick start to begin elsewhere. Tap any word to look it up.</p>
+
+  <details class="card settings">
+    <summary>Settings</summary>
+    <div class="grid">
+      <label>Define a word after<span><input id="tries" type="number" min="1" value="2"> failed tries</span></label>
+      <label>Warn after<span><input id="warn" type="number" min="2" value="8"> s</span></label>
+      <label>Sound alarm after<span><input id="redir" type="number" min="3" value="18"> s</span></label>
+      <label>Speech language<input id="lang" list="langs" placeholder="en-US"></label>
+    </div>
+    <datalist id="langs"><option value="en-US"><option value="en-GB"><option value="ko-KR"><option value="ja-JP"><option value="zh-CN"><option value="es-ES"><option value="fr-FR"><option value="de-DE"><option value="pt-BR"><option value="it-IT"><option value="ru-RU"></datalist>
+  </details>
+</main>
+<script src="sidepanel.js"></script>

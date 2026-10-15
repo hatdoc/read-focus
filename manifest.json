@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "Read Aloud Focus",
+  "version": "1.0",
+  "description": "Study by reading aloud. Advances sentence by sentence as you speak; nudges you back if you drift.",
+  "permissions": ["sidePanel", "storage", "tabs"],
+  "host_permissions": ["<all_urls>"],
+  "background": { "service_worker": "background.js" },
+  "side_panel": { "default_path": "sidepanel.html" },
+  "action": { "default_title": "Read Aloud Focus" },
+  "content_scripts": [{ "matches": ["<all_urls>"], "js": ["content.js"] }]
+}
