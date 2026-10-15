@@ -1,7 +1,9 @@
 let segs = [], sents = [], warnEl, pickEl;
 const style = document.createElement('style');
-style.textContent = '::highlight(rf-hl){background:#ffe066;color:#000}@keyframes rf-fade{from{opacity:0}}@keyframes rf-in{from{opacity:0;transform:translate(-50%,-12px)}}';
+style.textContent = '::highlight(rf-hl){background:#ffe066;color:#000}::highlight(rf-pick){background:#bfdbfe;color:#000}@keyframes rf-fade{from{opacity:0}}@keyframes rf-in{from{opacity:0;transform:translate(-50%,-12px)}}';
 document.documentElement.append(style);
+
+const BLOCKS = 'p,li,h1,h2,h3,h4,h5,h6,div,td,th,tr,blockquote,section,article,pre,dd,dt,figcaption,summary';
 
 function capture() {
   const sel = getSelection();
@@ -11,15 +13,18 @@ function capture() {
   let rootEl = document.querySelector('article, main, [role=main]') || document.body;
   if (sr && !rootEl.contains(sr.startContainer)) rootEl = document.body;
   const walker = document.createTreeWalker(rootEl, NodeFilter.SHOW_TEXT);
-  let text = '';
+  let text = '', lastBlock;
   for (let n; (n = walker.nextNode()); ) {
     const el = n.parentElement;
     if (!el || el.closest('script,style,noscript,textarea,nav,header,footer,aside,form,button,[role=navigation]') || !el.checkVisibility()) continue;
     const t = n.data;
     if (!t.trim()) continue;
-    if (text && !/\s$/.test(text)) text += ' ';
+    // a new block (heading, paragraph, list item...) always ends the previous sentence
+    const block = el.closest(BLOCKS);
+    if (text) text += block !== lastBlock ? '\n' : /\s$/.test(text) ? '' : ' ';
+    lastBlock = block;
     segs.push({ n, s: 0, at: text.length, len: t.length });
-    text += t;
+    text += t.replace(/\s/g, ' '); // source line breaks are not sentence breaks (same length keeps offsets valid)
   }
   for (const m of text.matchAll(/[^.!?。！？\n]+[.!?。！？]*/g)) {
     const t = m[0].trim();
@@ -84,21 +89,34 @@ function pick() {
   const done = () => {
     pickEl.remove();
     document.documentElement.style.cursor = '';
+    CSS.highlights.delete('rf-pick');
+    removeEventListener('mousemove', onMove, true);
     removeEventListener('click', onClick, true);
     removeEventListener('keydown', onKey, true);
   };
   const onKey = (e) => e.key === 'Escape' && done();
+  const at = (e) => {
+    const cp = document.caretPositionFromPoint?.(e.clientX, e.clientY);
+    const cr = cp ? null : document.caretRangeFromPoint(e.clientX, e.clientY);
+    let i = idxAt(cp?.offsetNode ?? cr?.startContainer, cp?.offset ?? cr?.startOffset);
+    if (i < 0) i = sents.findIndex((_, k) => rangeOf(k)?.getBoundingClientRect().bottom >= e.clientY); // clicked outside text: next sentence below
+    return i < 0 ? sents.length - 1 : i;
+  };
+  let raf;
+  const onMove = (e) => {
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(() => { // preview the sentence a click would start from
+      const r = rangeOf(at(e));
+      r ? CSS.highlights.set('rf-pick', new Highlight(r)) : CSS.highlights.delete('rf-pick');
+    });
+  };
   const onClick = (e) => {
     e.preventDefault(); e.stopPropagation();
     done();
-    const cp = document.caretPositionFromPoint?.(e.clientX, e.clientY);
-    const cr = cp ? null : document.caretRangeFromPoint(e.clientX, e.clientY);
-    const node = cp?.offsetNode ?? cr?.startContainer, off = cp?.offset ?? cr?.startOffset;
-    let i = idxAt(node, off);
-    if (i < 0) i = sents.findIndex((_, k) => rangeOf(k)?.getBoundingClientRect().bottom >= e.clientY); // clicked outside text: next sentence below
-    if (i < 0) i = sents.length - 1;
+    const i = at(e);
     chrome.runtime.sendMessage({ type: 'picked', i, sents: sents.map((s) => s.t) });
   };
+  addEventListener('mousemove', onMove, true);
   addEventListener('click', onClick, true);
   addEventListener('keydown', onKey, true);
 }
