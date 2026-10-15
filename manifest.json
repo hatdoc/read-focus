@@ -4,6 +4,7 @@
   "version": "1.0",
   "description": "Study by reading aloud. Advances sentence by sentence as you speak; nudges you back if you drift.",
   "permissions": [
+    "declarativeNetRequestWithHostAccess",
     "sidePanel",
     "storage",
     "tabs"
@@ -39,5 +40,14 @@
     "32": "icons/icon32.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
+  },
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "naver",
+        "enabled": true,
+        "path": "rules.json"
+      }
+    ]
   }
 }

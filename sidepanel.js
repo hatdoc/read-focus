@@ -39,16 +39,63 @@ async function lookup(w, code, depth = 0) {
   return { pos: e.partOfSpeech, text: base ? `${text} — ${base.text}` : text };
 }
 
+const txt = (html) => new DOMParser().parseFromString(html || '', 'text/html').body.textContent.trim();
+const tcache = new Map();
+
+// Naver English-Korean dictionary (unofficial endpoints; falls back if they change or block)
+async function naver(w) {
+  try {
+    const j = await (await fetch(`https://en.dict.naver.com/api3/enko/search?query=${encodeURIComponent(w)}&m=pc&range=word&page=1&lang=ko&shouldSearchVlive=false`)).json();
+    const it = j.searchResultMap.searchResultListMap.WORD.items.find((i) => i.matchType.startsWith('exact') && txt(i.expEntry).toLowerCase() === w);
+    const parts = it.meansCollector.slice(0, 3).map((mc) =>
+      `${mc.partOfSpeech || ''} ${mc.means.slice(0, 2).map((x) => txt(x.value).replace(/^\([^)]*\)\s*/, '').replace(/\s*\(→[^)]*\)/g, '')).join('; ')}`.trim());
+    if (parts.length) return { text: parts.join(' · ').slice(0, 160), via: 'Naver' };
+  } catch {}
+  try { // short autocomplete meaning
+    const j = await (await fetch(`https://ac-dict.naver.com/enko/ac?q=${encodeURIComponent(w)}&q_enc=utf-8&st=11&r_format=json&r_enc=utf-8&r_lt=11&r_unicode=0&r_escape=1`)).json();
+    const hit = j.items[0].find((x) => x[0][0].toLowerCase() === w);
+    if (hit) return { text: hit[2][0], via: 'Naver' };
+  } catch {}
+  return null;
+}
+
+async function gtx(w, src, dst) {
+  try {
+    const j = await (await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=${src}&tl=${dst}&dt=t&dt=bd&q=${encodeURIComponent(w)}`)).json();
+    const words = [j[0][0][0], ...(j[1]?.[0]?.[1]?.slice(0, 3) || [])];
+    return { text: [...new Set(words)].join(', '), via: 'Google' };
+  } catch {}
+  try { // rate-limited or blocked: free fallback
+    const j = await (await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(w)}&langpair=${src}|${dst}`)).json();
+    return { text: j.responseData.translatedText, via: 'MyMemory' };
+  } catch { return null; }
+}
+
+function translate(w, src, dst) {
+  if (!dst) return null;
+  const key = `${src}>${dst}:${w}`;
+  if (!tcache.has(key)) tcache.set(key, (async () => ((dst === 'ko' && src === 'en' && (await naver(w))) || gtx(w, src, dst)))());
+  return tcache.get(key);
+}
+
 async function define(w) {
-  const code = ($('lang').value || navigator.language).split('-')[0];
-  const at = S.i;
-  const m = await lookup(w, code);
-  if (S.i !== at) return; // sentence already advanced
+  const src = ($('lang').value || navigator.language).split('-')[0];
+  const dst = $('tlang').value.trim();
+  const [m, tr] = await Promise.all([lookup(w, src), translate(w, src, dst)]);
   const b = document.createElement('b'), small = document.createElement('small'), p = document.createElement('p');
   b.textContent = w;
   small.textContent = m?.pos || '';
   p.textContent = m ? m.text : 'No definition found.';
-  $('def').replaceChildren(b, small, p);
+  const parts = [b, small];
+  if (tr) {
+    const t = document.createElement('div'), via = document.createElement('small');
+    t.className = 'tr'; t.textContent = tr.text;
+    via.textContent = ` ${tr.via}`;
+    t.append(via);
+    parts.push(t);
+  }
+  parts.push(p);
+  $('def').replaceChildren(...parts);
   $('def').hidden = false;
   $('cur').querySelector(`span:not(.heard)[data-n="${CSS.escape(w)}"]`)?.classList.add('stuck');
   touch(); // time to read it
@@ -240,7 +287,7 @@ setInterval(() => {
 }, 250);
 
 // settings persistence
-const KEYS = ['tries', 'warn', 'redir', 'lang'];
+const KEYS = ['tries', 'warn', 'redir', 'lang', 'tlang'];
 chrome.storage.local.get(KEYS).then((v) => KEYS.forEach((k) => v[k] && ($(k).value = v[k])));
 KEYS.forEach((k) => $(k).addEventListener('change', () => chrome.storage.local.set({ [k]: $(k).value })));
 
@@ -258,6 +305,7 @@ $('pick').onclick = async () => {
 chrome.runtime.onMessage.addListener((m, sender) => {
   if (sender.tab?.id !== S.tabId) return;
   if (m.type === 'picked') { S.sents = m.sents; S.i = m.i; run(); }
+  else if (m.type === 'lookup') define(m.word);
 });
 
 // tap any word in the sentence to look it up

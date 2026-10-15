@@ -6,7 +6,7 @@ A Chrome extension for studying: read the page aloud, sentence by sentence. It l
 - Reads the whole page; starts from the first sentence on screen, a selection, or **Pick start**
 - Words turn green as you say them; lenient matching ignores minor misreads
 - Silence warning, then a siren until you read again or press Stop
-- Tap a word, or fail it twice, to see a definition (Wiktionary)
+- Click a word, or fail it twice, to see a definition (Wiktionary) and an optional translation (Naver Dictionary for Korean, Google Translate for other languages)
 - Works with any speech language Chrome supports
 
 ## Install (unpacked)
@@ -15,7 +15,7 @@ A Chrome extension for studying: read the page aloud, sentence by sentence. It l
 3. Open an article, click the extension icon, press **Start**, and allow the microphone
 
 ## Privacy
-Chrome's speech recognition sends audio to Google's servers. Word lookups send the word to Wiktionary. Nothing else leaves your browser and nothing is stored beyond your settings.
+Chrome's speech recognition sends audio to Google's servers. Word lookups send the word to Wiktionary and, if you turn on translation, to Naver Dictionary (Korean) or Google Translate. Nothing else leaves your browser and nothing is stored beyond your settings.
 
 ## License
 MIT

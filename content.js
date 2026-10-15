@@ -1,4 +1,4 @@
-let segs = [], sents = [], warnEl, pickEl;
+let segs = [], sents = [], warnEl, pickEl, cur = -1;
 const style = document.createElement('style');
 style.textContent = '::highlight(rf-hl){background:#ffe066;color:#000}::highlight(rf-pick){background:#bfdbfe;color:#000}@keyframes rf-fade{from{opacity:0}}@keyframes rf-in{from{opacity:0;transform:translate(-50%,-12px)}}';
 document.documentElement.append(style);
@@ -63,6 +63,7 @@ function rangeOf(i) {
 }
 
 function highlight(i) {
+  cur = i;
   const r = rangeOf(i);
   if (!r) return CSS.highlights.delete('rf-hl');
   CSS.highlights.set('rf-hl', new Highlight(r));
@@ -121,10 +122,21 @@ function pick() {
   addEventListener('keydown', onKey, true);
 }
 
+// click a word of the sentence being read to look it up
+addEventListener('click', (e) => {
+  if (cur < 0 || e.target.closest?.('a,button,input,textarea,select,[role=button]')) return;
+  const cp = document.caretPositionFromPoint?.(e.clientX, e.clientY);
+  const cr = cp ? null : document.caretRangeFromPoint(e.clientX, e.clientY);
+  const node = cp?.offsetNode ?? cr?.startContainer, off = cp?.offset ?? cr?.startOffset;
+  if (node?.nodeType !== 3 || !rangeOf(cur)?.isPointInRange(node, off)) return;
+  for (const m of node.data.matchAll(/[\p{L}\p{N}'’-]+/gu))
+    if (m.index <= off && off <= m.index + m[0].length) return chrome.runtime.sendMessage({ type: 'lookup', word: m[0].toLowerCase().replace(/^['’-]+|['’-]+$/g, '') });
+});
+
 chrome.runtime.onMessage.addListener((m, _s, reply) => {
   if (m.type === 'capture') reply(capture());
   else if (m.type === 'pick') pick();
   else if (m.type === 'highlight') highlight(m.i);
   else if (m.type === 'warn') warn(m.on);
-  else if (m.type === 'clear') { CSS.highlights.delete('rf-hl'); warn(false); segs = []; sents = []; }
+  else if (m.type === 'clear') { CSS.highlights.delete('rf-hl'); warn(false); cur = -1; segs = []; sents = []; }
 });

@@ -30,7 +30,7 @@
     <button id="pick" title="Click on the page where you want to start">📍 Pick start</button>
     <button id="reset" title="Clear and start over">↺ Reset</button>
   </div>
-  <p class="hint">Reads the whole page from the first sentence on screen. Select a sentence or use Pick start to begin elsewhere. Tap any word to look it up.</p>
+  <p class="hint">Reads the whole page from the first sentence on screen. Select a sentence or use Pick start to begin elsewhere. Click any word of the highlighted sentence (on the page or here) to look it up.</p>
 
   <details class="card settings">
     <summary>Settings</summary>
@@ -39,7 +39,9 @@
       <label>Warn after<span><input id="warn" type="number" min="2" value="8"> s</span></label>
       <label>Sound alarm after<span><input id="redir" type="number" min="3" value="18"> s</span></label>
       <label>Speech language<input id="lang" list="langs" placeholder="en-US"></label>
+      <label class="wide">Translate words to <small>(e.g. ko, ja, zh-CN, es — blank = off)</small><input id="tlang" list="tlangs" placeholder="ko"></label>
     </div>
+    <datalist id="tlangs"><option value="ko"><option value="ja"><option value="zh-CN"><option value="es"><option value="fr"><option value="de"><option value="pt"><option value="vi"><option value="th"><option value="ru"></datalist>
     <datalist id="langs"><option value="en-US"><option value="en-GB"><option value="ko-KR"><option value="ja-JP"><option value="zh-CN"><option value="es-ES"><option value="fr-FR"><option value="de-DE"><option value="pt-BR"><option value="it-IT"><option value="ru-RU"></datalist>
   </details>
 </main>
