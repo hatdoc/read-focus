@@ -34,7 +34,7 @@ function capture() {
   }
   let start = sr ? idxAt(sr.startContainer, sr.startOffset) : -1;
   if (start < 0) start = sents.findIndex((_, i) => rangeOf(i)?.getBoundingClientRect().top >= 0); // first sentence on screen
-  return { sents: sents.map((s) => s.t), start: Math.max(start, 0) };
+  return { sents: sents.map((s) => s.t.replace(/\s+/g, ' ')), start: Math.max(start, 0) };
 }
 
 // index of the sentence at a DOM position, or -1 if it isn't in the captured text
@@ -114,7 +114,7 @@ function pick() {
     e.preventDefault(); e.stopPropagation();
     done();
     const i = at(e);
-    chrome.runtime.sendMessage({ type: 'picked', i, sents: sents.map((s) => s.t) });
+    chrome.runtime.sendMessage({ type: 'picked', i, sents: sents.map((s) => s.t.replace(/\s+/g, ' ')) });
   };
   addEventListener('mousemove', onMove, true);
   addEventListener('click', onClick, true);
