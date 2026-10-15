@@ -16,3 +16,6 @@ A Chrome extension for studying: read the page aloud, sentence by sentence. It l
 
 ## Privacy
 Chrome's speech recognition sends audio to Google's servers. Word lookups send the word to Wiktionary. Nothing else leaves your browser and nothing is stored beyond your settings.
+
+## License
+MIT
