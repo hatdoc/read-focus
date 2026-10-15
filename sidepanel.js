@@ -277,7 +277,7 @@ function reset() {
 }
 
 function meter(idle) {
-  const redir = +$('redir').value || 18, warn = +$('warn').value || 8;
+  const redir = +$('redir').value || 18, warn = +$("warn").value || 10;
   $('meter').style.width = `${Math.min(idle / redir, 1) * 100}%`;
   $('meter').parentElement.className = 'meter' + (idle >= redir * 0.8 ? ' bad' : idle >= warn ? ' warn' : '');
   $('tickWarn').style.left = `${(warn / redir) * 100}%`;
