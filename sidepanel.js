@@ -260,6 +260,15 @@ function run() {
   render(); listen();
 }
 
+// can't pronounce it? move on without it
+function skip() {
+  if (!S.sents.length || S.i >= S.sents.length) return;
+  S.i++; S.prog = 0; touch();
+  render();
+  if (S.i >= S.sents.length) return pause('Finished');
+  if (S.running) S.rec?.abort(); // restart with a clean transcript
+}
+
 function reset() {
   pause();
   toTab({ type: 'clear' });
@@ -294,6 +303,7 @@ KEYS.forEach((k) => $(k).addEventListener('change', () => chrome.storage.local.s
 $('toggle').onclick = () => (S.running ? pause() : start());
 render();
 $('reset').onclick = reset;
+$('skip').onclick = skip;
 $('pick').onclick = async () => {
   pause();
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });

@@ -27,6 +27,7 @@
 
   <div class="controls">
     <button id="toggle" class="primary">▶ Start</button>
+    <button id="skip" title="Skip this sentence">⏭ Skip</button>
     <button id="pick" title="Click on the page where you want to start">📍 Pick start</button>
     <button id="reset" title="Clear and start over">↺ Reset</button>
   </div>
@@ -36,7 +37,7 @@
     <summary>Settings</summary>
     <div class="grid">
       <label>Define a word after<span><input id="tries" type="number" min="1" value="2"> failed tries</span></label>
-      <label>Warn after<span><input id="warn" type="number" min="2" value="8"> s</span></label>
+      <label>Warn after<span><input id="warn" type="number" min="2" value="10"> s</span></label>
       <label>Sound alarm after<span><input id="redir" type="number" min="3" value="18"> s</span></label>
       <label>Speech language<input id="lang" list="langs" placeholder="en-US"></label>
       <label class="wide">Translate words to <small>(e.g. ko, ja, zh-CN, es — blank = off)</small><input id="tlang" list="tlangs" placeholder="ko"></label>
